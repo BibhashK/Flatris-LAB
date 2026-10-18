@@ -1,6 +1,4 @@
 # Node.js with Next.js / React
-# Continuous Integration pipeline: installs dependencies, builds static/server assets, and saves artifacts.
-
 trigger:
 - master
 
@@ -13,20 +11,21 @@ steps:
     versionSpec: '20.x'
   displayName: 'Install Node.js 20.x'
 
+# If your code lives in a subfolder named "web", set workingDirectory here:
 - script: |
-    npm ci
+    npm install --legacy-peer-deps
     npm run build
-  displayName: 'Install dependencies and build project'
+  workingDirectory: 'web'   # <-- Change this to your subfolder path, or remove this line if in the root
+  displayName: 'Install dependencies and build'
 
 - task: CopyFiles@2
   displayName: 'Stage build output'
   inputs:
-    sourceFolder: '$(System.DefaultWorkingDirectory)'
+    sourceFolder: '$(System.DefaultWorkingDirectory)/web'  # Match your subfolder
     contents: |
       .next/**
       public/**
       package.json
-      package-lock.json
     targetFolder: '$(Build.ArtifactStagingDirectory)'
 
 - task: PublishBuildArtifacts@1
