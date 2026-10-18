@@ -1,7 +1,5 @@
-# Node.js with React
-# Build a Node.js project that uses React.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+# Node.js with Next.js / React
+# Continuous Integration pipeline: installs dependencies, builds static/server assets, and saves artifacts.
 
 trigger:
 - master
@@ -13,9 +11,27 @@ steps:
 - task: NodeTool@0
   inputs:
     versionSpec: '20.x'
-  displayName: 'Install Node.js'
+  displayName: 'Install Node.js 20.x'
 
 - script: |
-    npm install
+    npm ci
     npm run build
-  displayName: 'npm install and build'
+  displayName: 'Install dependencies and build project'
+
+- task: CopyFiles@2
+  displayName: 'Stage build output'
+  inputs:
+    sourceFolder: '$(System.DefaultWorkingDirectory)'
+    contents: |
+      .next/**
+      public/**
+      package.json
+      package-lock.json
+    targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish pipeline artifact'
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'drop'
+    publishLocation: 'Container'
